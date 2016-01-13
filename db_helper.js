@@ -25,6 +25,13 @@ exports.add = function(a,b){
 	return x;
 }
 
+exports.subtract = function(a,b){
+	var x = 0;
+	x = a - b;
+	return x;
+}
+
+
 exports.initDBByParms = function (host,port,db,user,password){
 	var mysql = require("mysql");
 	var connection = mysql.createConnection({

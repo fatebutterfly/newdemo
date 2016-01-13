@@ -1,4 +1,6 @@
-//3.js
+// 3.js
+// get method from db_helper.js
+
 
 var db_helper = require("./db_helper.js");
 

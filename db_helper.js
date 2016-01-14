@@ -52,7 +52,7 @@ exports.initDB = function (){
 exports.query = function(conn,queryString,getrows){
 	conn.connect();
 	conn.query(queryString,function(err,rows,fields){
-	if (err) throw err;
+	if (err)  throw err;
 		getrows(rows)
 	});
 	conn.end();

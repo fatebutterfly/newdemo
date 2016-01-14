@@ -14,6 +14,7 @@ http.createServer(function(request,response)
 // HEAD
 console.log("xxxxx");
 // c433d833b575a395cc0feaa18be80bf784c9bf36
+// update express
 console.log('server start at 888');
 /*
 2015-12-31T10:27:14.963035Z 1 [Note] A temporary password is generated for root@localhost: clZlyfp;W3qY

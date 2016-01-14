@@ -2,6 +2,8 @@
 var xmpp_ser = require("node-xmpp-server")
 var Client = require("node-xmpp-client")
 
+var xclient ;
+
 var server = new xmpp_ser.C2S.TCPServer({
 	port:5222,
 	domain:'192.168.0.116'
@@ -17,7 +19,11 @@ server.on("connection",function (client){
 
 	client.on("authenticate",function (opts,cb) {
 		console.log("authenticate")
-		if (opts.password === 'secret'){
+		if (opts.password == "123"){
+			xclient = client
+		}
+
+		if (opts.password == 'secret' || opts.password == "123"){
 			console.log("server:",opts.username,opts.password,"Auth OK")
 			cb(null,opts)
 		} else {
@@ -33,14 +39,23 @@ server.on("connection",function (client){
 
 	client.on("stanza",function (stanza) {
 		console.log("stanza server :",client.jid.local,"stanza",stanza.toString())
-		var from = stanza.attrs.from 
+		var from = stanza.attrs.from
 		stanza.attrs.from = stanza.attrs.to
 		stanza.attrs.to = from
+
+		if(xclient){
+			//console.log("xclient:",xclient)
+			xclient.send(stanza)
+		}
+
+		console.log(" chrt to : ",stanza.attrs.chrtto)
+
 		client.send(stanza)
 	})
 })
 	server.on("listening",function(){
 		console.log("监听开始")
+		/*
 		var client1 = new Client({
     		jid: 'client1@localhost',
   		    password: 'secret'
@@ -58,7 +73,7 @@ server.on("connection",function (client){
   		})
   		client2.on('error', function (error) {
     		console.log('client2', error)
-  		})
+  		})*/
 	})
 
 

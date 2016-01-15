@@ -2,7 +2,7 @@
 var xmpp_ser = require("node-xmpp-server")
 var Client = require("node-xmpp-client")
 
-var xclient ;
+var xclient = []
 
 var server = new xmpp_ser.C2S.TCPServer({
 	port:5222,
@@ -17,10 +17,28 @@ server.on("connection",function (client){
 		cb(true)
 	})
 
+		
+
 	client.on("authenticate",function (opts,cb) {
 		console.log("authenticate")
-		if (opts.password == "123"){
+		/*
+		if (opts.jid.local == "2222"){
 			xclient = client
+		}
+		if (opts.jid.local == "4444"){
+			yclient = client
+		}*/
+
+		var hasClient = false;
+		for(var i = 0;i < xclient.length; i++){
+			var item = xclient[i]
+			if (item == client || !opts.jid.local) {
+				hasClient = true
+			}
+		};
+		if (!hasClient){
+			xclient[xclient.length] = client
+			//console.log("添加了一个")
 		}
 
 		if (opts.password == 'secret' || opts.password == "123"){
@@ -42,16 +60,34 @@ server.on("connection",function (client){
 		var from = stanza.attrs.from
 		stanza.attrs.from = stanza.attrs.to
 		stanza.attrs.to = from
-
-		if(xclient){
-			//console.log("xclient:",xclient)
+		/*
+		if(client.jid.local == "4444" && xclient){
+			console.log("xclient: from 4444")
 			xclient.send(stanza)
 		}
+		if (client.jid.local == "2222" && yclient ){
+			console.log("xclient: from 2222")
+			yclient.send(stanza)
+		}*/
+		var chrtto = stanza.attrs.chrtto;
 
-		console.log(" chrt to : ",stanza.attrs.chrtto)
+		for(var i = 0; i < xclient.length; i++){
+			var model = xclient[i];
+			//console.log(" xxxxx model.jid ",model.jid)
+			if (model && model.jid && model.jid.local == chrtto){
+				//console.log("one client :",model.jid.local)
+				model.send(stanza)
 
-		client.send(stanza)
+			}
+		}
+
+
+		//console.log(" chrt to : ",stanza.attrs.chrtto)
+
+		//client.send(stanza)
 	})
+
+	
 })
 	server.on("listening",function(){
 		console.log("监听开始")

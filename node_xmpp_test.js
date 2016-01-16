@@ -17,8 +17,6 @@ server.on("connection",function (client){
 		cb(true)
 	})
 
-		
-
 	client.on("authenticate",function (opts,cb) {
 		console.log("authenticate")
 		/*
@@ -28,22 +26,22 @@ server.on("connection",function (client){
 		if (opts.jid.local == "4444"){
 			yclient = client
 		}*/
-
-		var hasClient = false;
-		for(var i = 0;i < xclient.length; i++){
-			var item = xclient[i]
-			if (item == client || !opts.jid.local) {
-				hasClient = true
-			}
-		};
-		if (!hasClient){
-			xclient[xclient.length] = client
-			//console.log("添加了一个")
-		}
-
 		if (opts.password == 'secret' || opts.password == "123"){
 			console.log("server:",opts.username,opts.password,"Auth OK")
 			cb(null,opts)
+			var hasClient = false;
+			for(var i = 0;i < xclient.length; i++){
+				var item = xclient[i]
+				if (item.jid.local == opts.jid.local) {
+					hasClient = true
+					xclient[i] = client
+					console.log("替换了一个")
+				}
+			};
+			if (!hasClient){
+				xclient[xclient.length] = client
+				console.log("添加了一个")
+			}
 		} else {
 			console.log("Auth false")
 			cb(false)
@@ -57,9 +55,23 @@ server.on("connection",function (client){
 
 	client.on("stanza",function (stanza) {
 		console.log("stanza server :",client.jid.local,"stanza",stanza.toString())
+		var chatroom = stanza.attrs.roomname
+		client.room = chatroom
+
 		var from = stanza.attrs.from
 		stanza.attrs.from = stanza.attrs.to
 		stanza.attrs.to = from
+		if (stanza.attrs.type == "unavailable"){
+			for(var i = 0; i < xclient.length; i++){
+				var model = xclient[i];
+				if (model && model.jid && model.jid.local == client.jid.local){
+					xclient.splice(i,1);
+					console.log("删除了数组中的元素")
+				}
+			}
+			client.end();
+			return;
+		}
 		/*
 		if(client.jid.local == "4444" && xclient){
 			console.log("xclient: from 4444")
@@ -70,20 +82,26 @@ server.on("connection",function (client){
 			yclient.send(stanza)
 		}*/
 		var chrtto = stanza.attrs.chrtto;
-
-		for(var i = 0; i < xclient.length; i++){
-			var model = xclient[i];
+		if (chrtto){
+			console.log("client count is ",xclient.length)
+			for(var i = 0; i < xclient.length; i++){
+				var model = xclient[i];
 			//console.log(" xxxxx model.jid ",model.jid)
-			if (model && model.jid && model.jid.local == chrtto){
+				if (model && model.jid && model.jid.local == chrtto){
 				//console.log("one client :",model.jid.local)
-				model.send(stanza)
-
+					model.send(stanza)
+				}
 			}
 		}
-
-
+		if (chatroom){
+			for(var i = 0; i < xclient.length; i++){
+				var model = xclient[i];
+				if (model && model.room == chatroom && model != client){
+					model.send(stanza)
+				}
+			}
+		}
 		//console.log(" chrt to : ",stanza.attrs.chrtto)
-
 		//client.send(stanza)
 	})
 

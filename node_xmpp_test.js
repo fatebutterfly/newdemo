@@ -102,6 +102,7 @@ server.on("connection",function (client){
 			}
 		}
 		//console.log(" chrt to : ",stanza.attrs.chrtto)
+		//
 		//client.send(stanza)
 	})
 

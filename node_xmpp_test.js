@@ -4,6 +4,8 @@ var Client = require("node-xmpp-client")
 
 var xclient = []
 
+var clientmap = new Map()
+
 var server = new xmpp_ser.C2S.TCPServer({
 	port:5222,
 	domain:'192.168.0.116'
@@ -46,7 +48,9 @@ server.on("connection",function (client){
 			console.log("Auth false")
 			cb(false)
 		}
-
+		if (opts.jid.local){
+			clientmap.set(opts.jid.local,client);
+		}
 	})
 
 	client.on("online",function () {
@@ -72,6 +76,8 @@ server.on("connection",function (client){
 			client.end();
 			return;
 		}
+
+
 		/*
 		if(client.jid.local == "4444" && xclient){
 			console.log("xclient: from 4444")
@@ -83,6 +89,7 @@ server.on("connection",function (client){
 		}*/
 		var chrtto = stanza.attrs.chrtto;
 		if (chrtto){
+			var x = clientmap.get(chrtto)
 			console.log("client count is ",xclient.length)
 			for(var i = 0; i < xclient.length; i++){
 				var model = xclient[i];

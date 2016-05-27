@@ -3,7 +3,7 @@ var xmpp_ser = require("node-xmpp-server")
 var Client = require("node-xmpp-client")
 
 var xclient = []
-
+var rooms = new Map();
 var clientmap = new Map()
 
 var server = new xmpp_ser.C2S.TCPServer({
@@ -65,6 +65,70 @@ server.on("connection",function (client){
 		var from = stanza.attrs.from
 		stanza.attrs.from = stanza.attrs.to
 		stanza.attrs.to = from
+
+		if(stanza.attrs.hasroom){
+			var rnames = stanza.attrs.roomname
+			var roomnames = rnames.split('|')
+			var has = false
+			for(var i = 0;i < roomnames.length;i++){
+				var rnm = roomnames[i]
+				if(rooms.get(rnm)){
+					has = true
+					break;
+				}
+			}
+			if(has){
+				client.send(new xmpp_ser.Stanza('message',{to:'gamer',type:'has',rm:rnm}).c('body').t(''))
+			}else{
+				client.send(new xmpp_ser.Stanza('message',{to:'gamer',type:'has',rm:''}).c('body').t(''))
+			}
+			
+		}
+		if (stanza.attrs.addroom){// add room 
+			var rmclients = new Map();
+
+			rmclients.set(stanza.attrs.uid,client);
+			rooms.set(stanza.attrs.addroom,rmclients);
+			//create one room success
+			client.send(new xmpp_ser.Stanza('message',{to:'gamer',type:'create'}).c('body').t(''))
+		}
+		if (stanza.attrs.enterroom){//enter the room 
+			var yourroom = rooms.get(stanza.attrs.enterroom)
+			if (yourroom){//can find room ,enter this room
+				yourroom.set(stanza.attrs.uid,client);
+				rooms.set(stanza.attrs.enterroom,yourroom);
+				//enter this room success
+				for (var value of yourroom.values()) {
+ 					value.send(new xmpp_ser.Stanza('message', { to: 'gamer', type : 'enter' }).c('body').t(''))
+				}
+			}else{// undefind room ,create one by his self
+				//cant find this room,enter in another room
+				client.send(new xmpp_ser.Stanza('message',{ to: 'gamer',type:'cantjoin' }).c('body').t(''))
+			}
+		}
+
+		if (stanza.attrs.goout){// logout room
+			var yourroom = rooms.get(stanza.attrs.goout)
+			//go out this room
+			if (yourroom){
+				yourroom.delete(stanza.attrs.uid)
+                /*
+                for (var value of yourroom.values()) {
+				    value.send(new xmpp_server.Stanza('message',{ to : 'gamer',type : 'goout' }).c('body').t(''))
+                }*/
+                if stanza.attrs.goout == stanza.attrs.uid{
+					rooms.delete(stanza.attrs.goout)
+					for (var value of yourroom.values()) {
+				   	 	value.send(new xmpp_server.Stanza('message',{ to : 'gamer',type : 'closed',outname : outname }).c('body').t(''))
+               		}
+					return
+				}
+                if(yourroom.size == 0){
+                    rooms.delete(stanza.attrs.goout)
+                }
+			}
+		}
+
 		if (stanza.attrs.type == "unavailable"){
 			for(var i = 0; i < xclient.length; i++){
 				var model = xclient[i];

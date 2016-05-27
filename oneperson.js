@@ -26,7 +26,7 @@ function oneperson(index,name,img,live,votes){
 			this.words = words
 			this.status = status
 			if(this.client){
-				this.client.send(new xmpp_server.Stanza('message', { to: 'gamer', type : 'message' }).c('body').t(words))
+				this.client.send(new xmpp_server.Stanza('message', { to: 'gamer', type : 'message' }).c('body').t("您的描述词是【" + words+"】，请含蓄的描述领到的词汇"))
 			}
 		}
 		this.sendmsg = function(str){

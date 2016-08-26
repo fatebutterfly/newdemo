@@ -43,3 +43,5 @@ function oneperson(index,name,img,live,votes){
 			}
 		}
 }
+
+console.log(Math.max(3,9))
